@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from backend.src.routes.dijkstra import router as solve_router
+from src.routes.dijkstra import router as solve_router
 
 routes = APIRouter()
 

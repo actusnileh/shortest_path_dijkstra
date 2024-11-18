@@ -2,7 +2,7 @@ import heapq
 
 
 def dijkstra(graph, start):
-    n = len(graph)  # количество вершин
+    n = len(graph)
     inf = float("inf")
 
     # Массивы для расстояний и предшественников
@@ -41,24 +41,3 @@ def dijkstra(graph, start):
         print(f"  Массивы после обработки вершины {i}: l = {l}, ftr = {ftr}")
 
     return l, ftr
-
-
-# Пример использования
-if __name__ == "__main__":
-    # Граф в виде списка смежности: Г[i] = [(сосед, вес), ...]
-    graph = {
-        0: [(1, 1), (2, 4)],
-        1: [(0, 1), (2, 2), (3, 5)],
-        2: [(0, 4), (1, 2), (3, 1)],
-        3: [(1, 5), (2, 1)],
-    }
-
-    start_vertex = 0
-    l, ftr = dijkstra(graph, start_vertex)
-
-    print("\nКонечные результаты:")
-    print("Массив кратчайших расстояний (l):")
-    print(l)
-
-    print("\nМассив предшественников (ftr):")
-    print(ftr)

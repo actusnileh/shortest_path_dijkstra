@@ -19,6 +19,14 @@ front:
 drop-front:
 	${DC} -f ${FRONTEND_FILE}  down
 
+.PHONY: back
+back:
+	${DC} -f ${BACKEND_FILE} up --build -d
+
+.PHONY: drop-back
+drop-back:
+	${DC} -f ${BACKEND_FILE}  down
+
 .PHONY: logs
 logs:
 	${DC} -f ${BACKEND_FILE} -f ${FRONTEND_FILE} logs -f
