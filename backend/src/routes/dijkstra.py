@@ -8,9 +8,10 @@ router = APIRouter()
 
 @router.post("/dijkstra/")
 async def dijkstra_endpoint(request: GraphRequest):
-    distances, predecessors = dijkstra(request.graph, request.start)
+    distances, predecessors, log = dijkstra(request.graph, request.start)
 
     return {
         "distances": distances,
         "predecessors": predecessors,
+        "log": log,
     }

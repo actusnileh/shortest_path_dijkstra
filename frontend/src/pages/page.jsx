@@ -9,13 +9,14 @@ import {
     Table,
     TextInput,
     Stack,
+    Text,
 } from "@mantine/core";
 import axios from "axios";
 import { Graph } from "react-d3-graph";
 
 export const HomePage = () => {
     const [graph, setGraph] = useState([]);
-    const [startVertex, setStartVertex] = useState("");
+    const [startVertex, setStartVertex] = useState("0");
     const [result, setResult] = useState(null);
     const [error, setError] = useState(null);
 
@@ -126,6 +127,7 @@ export const HomePage = () => {
     const graphData = transformGraphData();
 
     const graphConfig = {
+        directed: true, // Включение направленных ребер
         nodeHighlightBehavior: true,
         node: {
             color: "#1d3557",
@@ -151,14 +153,49 @@ export const HomePage = () => {
         width: 800,
     };
 
+    // Функция для обновления данных графа с визуализацией результата
+    const getGraphWithResults = () => {
+        const nodes = [];
+        const links = [];
+
+        graph.forEach((edges, vertexIndex) => {
+            const node = {
+                id: vertexIndex.toString(),
+                color: "#1d3557", // по умолчанию цвет для не посещенных вершин
+            };
+
+            if (result) {
+                if (result.distances[vertexIndex] !== null) {
+                    node.color = "#4CAF50"; // цвет для вершин, которые были посещены
+                }
+
+                if (
+                    result.predecessors &&
+                    result.predecessors[vertexIndex] !== null
+                ) {
+                    node.color = "#FF9800"; // цвет для вершин на кратчайшем пути
+                }
+            }
+
+            nodes.push(node);
+
+            edges.forEach((edge) => {
+                const target = edge[0];
+                if (target < graph.length) {
+                    links.push({
+                        source: vertexIndex.toString(),
+                        target: target.toString(),
+                        label: edge[1].toString(),
+                    });
+                }
+            });
+        });
+
+        return { nodes, links };
+    };
+
     return (
         <Container style={{ textAlign: "center", padding: "2rem" }}>
-            <Paper shadow="xl" radius="xl" p={"md"} bg={"#262626"}>
-                <Title order={1} style={{ color: "#ecf0f1" }}>
-                    Алгоритм Дейкстры
-                </Title>
-            </Paper>
-
             <Paper
                 shadow="xl"
                 radius="xl"
@@ -276,48 +313,109 @@ export const HomePage = () => {
             )}
 
             {result && (
-                <Paper
-                    shadow="xl"
-                    radius="xl"
-                    p={"md"}
-                    style={{ marginTop: "2rem" }}
-                >
-                    <Title order={2}>Результаты</Title>
-                    <Table withColumnBorders withRowBorders>
-                        <Table.Thead>
-                            <Table.Tr>
-                                <Table.Th>Вершина</Table.Th>
-                                <Table.Th>Расстояние</Table.Th>
-                                <Table.Th>Предшественник</Table.Th>
-                            </Table.Tr>
-                        </Table.Thead>
-                        <Table.Tbody>
-                            {result.distances &&
-                                Array.isArray(result.distances) &&
-                                result.distances.map((distance, index) => (
-                                    <Table.Tr key={index}>
-                                        <Table.Td>{index}</Table.Td>
-                                        <Table.Td>
-                                            {distance === null ? "∞" : distance}
-                                        </Table.Td>
-                                        <Table.Td>
-                                            {result.predecessors &&
-                                            Array.isArray(
-                                                result.predecessors
-                                            ) &&
-                                            result.predecessors[index] === null
-                                                ? "-"
-                                                : result.predecessors[index]}
-                                        </Table.Td>
-                                    </Table.Tr>
+                <>
+                    <Paper
+                        shadow="xl"
+                        radius="xl"
+                        p={"md"}
+                        style={{
+                            marginTop: "2rem",
+                            backgroundColor: "#333", // Темный фон
+                            transition: "all 0.3s ease-in-out",
+                            padding: "20px",
+                        }}
+                    >
+                        <Title order={2}>Результаты</Title>
+                        <Table withColumnBorders withRowBorders>
+                            <Table.Thead>
+                                <Table.Tr>
+                                    <Table.Th>Вершина</Table.Th>
+                                    <Table.Th>Расстояние</Table.Th>
+                                    <Table.Th>Предшественник</Table.Th>
+                                </Table.Tr>
+                            </Table.Thead>
+                            <Table.Tbody>
+                                {result.distances &&
+                                    Array.isArray(result.distances) &&
+                                    result.distances.map((distance, index) => (
+                                        <Table.Tr key={index}>
+                                            <Table.Td>{index}</Table.Td>
+                                            <Table.Td>
+                                                {distance === null
+                                                    ? "∞"
+                                                    : distance}
+                                            </Table.Td>
+                                            <Table.Td>
+                                                {result.predecessors &&
+                                                Array.isArray(
+                                                    result.predecessors
+                                                ) &&
+                                                result.predecessors[index] ===
+                                                    null
+                                                    ? "-"
+                                                    : result.predecessors[
+                                                          index
+                                                      ]}
+                                            </Table.Td>
+                                        </Table.Tr>
+                                    ))}
+                            </Table.Tbody>
+                        </Table>
+                        <Title
+                            order={3}
+                            style={{
+                                color: "#ecf0f1",
+                                fontSize: "1.75rem",
+                                fontWeight: 600,
+                                marginBottom: "1rem",
+                                textAlign: "left",
+                            }}
+                        >
+                            Шаги решения
+                        </Title>
+                        <div
+                            style={{
+                                whiteSpace: "pre-wrap",
+                                textAlign: "left",
+                                color: "#ecf0f1", // Светлый текст для темной темы
+                                fontSize: "1.1rem",
+                                lineHeight: "1.6",
+                            }}
+                        >
+                            {result.log &&
+                                result.log.map((step, index) => (
+                                    <Text
+                                        key={index}
+                                        style={{
+                                            marginBottom: "15px",
+                                            padding: "10px",
+                                            borderRadius: "8px",
+                                            background:
+                                                "rgba(255, 255, 255, 0.1)", // Легкий фон для каждого шага
+                                            boxShadow:
+                                                "0 2px 8px rgba(0, 0, 0, 0.2)",
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                fontWeight: "bold",
+                                            }}
+                                        >
+                                            {step}
+                                        </span>
+                                    </Text>
                                 ))}
-                        </Table.Tbody>
-                    </Table>
-                </Paper>
+                        </div>
+                    </Paper>
+                </>
             )}
 
             <div style={{ marginTop: "2rem" }}>
-                <Graph id="graph-id" data={graphData} config={graphConfig} />
+                <Graph
+                    id="graph-id"
+                    data={getGraphWithResults()}
+                    config={graphConfig}
+                />
             </div>
         </Container>
     );
