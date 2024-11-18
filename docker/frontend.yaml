@@ -1,0 +1,17 @@
+services:
+    frontend:
+        container_name: dijkstra_javascript
+        build:
+            context: ../frontend
+            dockerfile: Dockerfile
+        ports:
+            - "5171:5173"
+        command: /bin/sh -c "pnpm run dev --host"
+        volumes:
+            - ../frontend:/frontend
+        networks:
+            - dijkstra_network
+
+networks:
+    dijkstra_network:
+        driver: bridge
